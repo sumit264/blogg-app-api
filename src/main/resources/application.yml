@@ -1,0 +1,61 @@
+server:
+  port:  8999
+  
+eureka:
+  instance:
+    hostname:  localhost  
+    
+
+spring:
+  zipkin:
+    base-url: http://localhost:9411/zipkin/
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+      - id: user-service
+        uri: lb://user-service
+        predicates:
+         - Path=/user/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: user-service
+            fallbackUri: forward:/userServiceFallback
+     
+        
+      - id: contact-service
+        uri: lb://contact-service
+        predicates:
+        - Path=/contact/** 
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: contact-service
+            fallbackUri: forward:/contactServiceFallback
+     
+                                      
+
+#Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+        
+#Hystrix Configuration
+hystrix: 
+    command:
+      fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+                   
+    
+    
+    
+    
+              
+  #scgr-iup
